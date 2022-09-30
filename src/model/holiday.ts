@@ -1,6 +1,6 @@
 interface IHoliday {
     id?: number,
-    userId: number,
+    userId?: number,
     start: Date,
     end: Date,
 } 

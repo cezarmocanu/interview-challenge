@@ -96,7 +96,7 @@ const Calendar = ({events}: Props) => {
         const days = new Array(DateUtils.getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth())).fill(0).map((_, index) => index + 1);
         return days.map((day) => {
             return (
-                <div className={"max-w h-32 border flex flex-col"}>
+                <div key={`calendar-day-${day}`} className={"max-w h-32 border flex flex-col"}>
                     <div className="max-w max-h flex justify-center items-center">
                         <span>{day}</span>
                     </div>

@@ -1,5 +1,5 @@
 import type {NextPage} from 'next';
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 
 import IStaff from "@model/staff";
 
@@ -14,6 +14,10 @@ const Home: NextPage = () => {
     const [staffList, setStaffList] = useState<IStaff[]>([]);
     const [selectedStaffMember, setSelectedStaffMember] = useState<IStaff | null>(null);
     const [holidayList, setHolidayList] = useState<IHoliday[]>([]);
+    const [formData, setFormData] = useState({
+        startDate: null,
+        endDate: null,
+    });
 
     const getHolidaysByStaff = (staff: IStaff) => {
         HolidayService
@@ -35,19 +39,64 @@ const Home: NextPage = () => {
             });
     }
 
-    const handleStartDateChange = (e: any) => {
-        new Date(e.target.value)
+    const handleFormChange = (e: any) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
     }
+
+    const handleFormSubmit = (e: any) => {
+        e.preventDefault();
+        const holiday: IHoliday = {
+            start: new Date(formData.startDate ?? ""),
+            end: new Date(formData.endDate ?? ""),
+            userId: selectedStaffMember?.id,
+        }
+
+        HolidayService.create(holiday).then(() => {
+            if (selectedStaffMember) {
+                getHolidaysByStaff(selectedStaffMember)
+            }
+        });
+    }
+
+    const handleOnChange = (e: any) => {
+        const staff = staffList.find((staff: IStaff) => staff.id === Number(e.target.value)) ?? null;
+        setSelectedStaffMember(staff);
+    }
+
+    const remainingDays = useMemo(() => {
+        if(!selectedStaffMember) return;
+
+        const usedDays = holidayList
+            .map(event => {
+                const days = event.end.getDay() - event.start.getDay();
+                console.log(event.end.getDay(),event.start.getDay(),days)
+                return days === 0 ? 1 : Math.abs(days);
+            })
+            .reduce((s, el) => s + el , 0);
+
+        return selectedStaffMember?.vacationBudget - usedDays;
+    }, [selectedStaffMember, holidayList]);
 
     useEffect(() => {
         initializeStaffList();
     }, []);
 
+    useEffect(() => {
+        if (selectedStaffMember){
+            getHolidaysByStaff(selectedStaffMember);
+        }
+    }, [selectedStaffMember]);
+
     return (
         <>
-            <div className="flex justify-center px-20">
-                <div className="mb-3 xl:w-96">
-                    <select className="
+            <div className="flex justify-center pt-20 pb-5">
+                <div className="mb-3 w-full px-20">
+                    <select
+                        className="
+                        flex justify-start
                         form-select
                         appearance-none
                         block
@@ -64,44 +113,66 @@ const Home: NextPage = () => {
                         ease-in-out
                         m-0
                         focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                            aria-label="Default select example">
-                        <option selected>Open this select menu</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3">Three</option>
+                        value={selectedStaffMember?.id}
+                        onChange={handleOnChange}
+                    >
+                        {
+                            staffList.map((staff: IStaff) => {
+                                return (
+                                    <option
+                                        value={staff?.id}>
+                                        {staff.name}
+                                    </option>
+                                );
+                            })
+                        }
                     </select>
                 </div>
             </div>
-            <div className="flex">
-                <div className="flex flex-col grow items-left justify-center">
-                    <h6 className="text-md">Start Date</h6>
-                    <div className="datepicker relative form-floating mb-3 xl:w-96" data-mdb-toggle-button="false">
-                        <input type="date"
-                               onChange={handleStartDateChange}
-                               className="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                               placeholder="Select a date" data-mdb-toggle="datepicker"/>
-                        <label htmlFor="floatingInput" className="text-gray-700">Select a date</label>
-                    </div>
-                </div>
-                <div className="flex flex-col grow items-left justify-center">
-                    <h6 className="text-md">End Date</h6>
-                    <div className="flex grow">
+            <div className="px-20 pb-5">
+                <h1 className="text-2xl"> Vacation days</h1>
+                <h1 className="text-2xl"> <span className="text-blue-600">{remainingDays}</span> / 30</h1>
+            </div>
+            <form className="flex px-20 items-center">
+                    <div className="flex flex-col grow items-left justify-center">
+                        <h6 className="text-md">Start Date</h6>
                         <div className="datepicker relative form-floating mb-3 xl:w-96" data-mdb-toggle-button="false">
                             <input type="date"
+                                   onChange={handleFormChange}
+                                   name="startDate"
                                    className="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                                    placeholder="Select a date" data-mdb-toggle="datepicker"/>
                             <label htmlFor="floatingInput" className="text-gray-700">Select a date</label>
                         </div>
                     </div>
+                    <div className="flex flex-col grow items-left justify-center">
+                        <h6 className="text-md">End Date</h6>
+                        <div className="flex grow">
+                            <div className="datepicker relative form-floating mb-3 xl:w-96" data-mdb-toggle-button="false">
+                                <input type="date"
+                                       onChange={handleFormChange}
+                                       name="endDate"
+                                       className="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                                       placeholder="Select a date" data-mdb-toggle="datepicker"/>
+                                <label htmlFor="floatingInput" className="text-gray-700">Select a date</label>
+                            </div>
+                        </div>
+                    </div>
+                <div >
+                    <button
+                        onClick={handleFormSubmit}
+                        className="w-32 text-white bg-purple-600 flex justify-center items-center p-2 rounded-lg hover:bg-purple-400"
+                    >
+                        Add Vacation
+                    </button>
                 </div>
-
-            </div>
-            <div>
-                <h6 className="text-md">Calendar</h6>
+            </form>
+            <div className={"px-20"}>
+                <h1 className="text-lg py-2">Calendar</h1>
                 <Calendar events={holidayList}
                 />
             </div>
-            <div>
+            <div className={"px-20"}>
                 <div className={"max-w"}>
                     <h1 className="text-lg py-2">Scheduled vacations</h1>
                     <div className={"max-w"}>
@@ -110,11 +181,11 @@ const Home: NextPage = () => {
                                 return (
                                     <div className={"max-w mb-2 flex"}>
                                         <div className="flex flex-col justify-center items-center bg-purple-600 text-white w-24 h-24 rounded-lg">
-                                            <span className="text-xs">{`${MONTH_NAMES[event.start.getMonth()]} ${event.start.getFullYear()}`}</span>
+                                            <span className="text-xs">{`${MONTH_NAMES[event.start.getMonth() ?? 0]} ${event.start.getFullYear()}`}</span>
                                             <span className="text-2xl">{event.start.getDate() + 1}</span>
                                         </div>
                                         <div className="grow h-24 rounded-lg bg-purple-600 ml-2 text-white flex  items-center px-2">
-                                            <span className={"text-md"}>{`Vacation (${(event.end.getDate() - event.start.getDate())} days)`}</span>
+                                            <span className={"text-md"}>{`Vacation (${(event.end.getDate() - event.start.getDate() === 0 ? 1 : event.end.getDate() - event.start.getDate())} days)`}</span>
                                         </div>
                                     </div>
                                 )

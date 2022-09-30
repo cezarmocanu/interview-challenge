@@ -1,32 +1,19 @@
 import LOCAL_STORAGE_KEYS from "@constants/local_storage_keys";
 import IHoliday from "@model/holiday";
+import holiday from "@model/holiday";
+import {start} from "repl";
 
 const getAllByUserId = async (userId: number) => {
     const response = localStorage.getItem(LOCAL_STORAGE_KEYS.HOLIDAYS)
-    // const data = JSON.parse(response ?? "[]");
+    const data = JSON.parse(response ?? "[]");
 
-    const data = [
-        {
-            id: 0,
-            start: new Date("2022-09-20"),
-            end: new Date("2022-09-24"),
-            userId: 0,
-        },
-        {
-            id: 1,
-            start: new Date("2022-09-02"),
-            end: new Date("2022-09-04"),
-            userId: 0,
-        },
-        {
-            id: 2,
-            start: new Date("2022-08-02"),
-            end: new Date("2022-08-02"),
-            userId: 0,
-        },
-    ];
-
-    return data.filter((holiday: IHoliday) => holiday.userId === userId);
+    return data
+        .filter((holiday: IHoliday) => holiday.userId === userId)
+        .map((holiday: any) => ({
+            ...holiday,
+            start: new Date(holiday.start),
+            end: new Date(holiday.end),
+        }));
 };
 
 const create = async (holiday: IHoliday) => {
@@ -41,8 +28,8 @@ const create = async (holiday: IHoliday) => {
         ...holiday
     };
 
-    data.push(newEntity);
-    localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_HOLIDAY_ID, JSON.stringify(data));
+    const newData = [...data, newEntity];
+    localStorage.setItem(LOCAL_STORAGE_KEYS.HOLIDAYS, JSON.stringify(newData));
 
     return newEntity;
 };
