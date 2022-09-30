@@ -13,6 +13,9 @@
       ],
       "@services/*": [
         "src/services/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
       ]
     },
     "target": "es5",
