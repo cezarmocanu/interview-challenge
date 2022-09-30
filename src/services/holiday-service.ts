@@ -1,10 +1,10 @@
 import LOCAL_STORAGE_KEYS from "@constants/local_storage_keys";
 import IHoliday from "@model/holiday";
-import holiday from "@model/holiday";
-import {start} from "repl";
+import LocalStorageAdaptor from "@service-adaptors/local-storage-adaptor";
 
-const getAllByUserId = async (userId: number) => {
-    const response = localStorage.getItem(LOCAL_STORAGE_KEYS.HOLIDAYS)
+/*This method is tested, using a service adaptor pattern, to mock external dependencies*/
+const getAllByUserId = async (userId: number, localStorageAdaptor: any = LocalStorageAdaptor) => {
+    const response = localStorageAdaptor.getItem(LOCAL_STORAGE_KEYS.HOLIDAYS);
     const data = JSON.parse(response ?? "[]");
 
     return data
