@@ -1,24 +1,26 @@
 import ITimeEvent from "@model/time-event";
-import {useCallback, useMemo, useState} from "react";
+import {useCallback, useMemo} from "react";
 import MONTH_NAMES from "@constants/month_names";
 import EventIndicator from "@components/calendar/event-indicator";
 import DateUtils from "@utils/date-utils";
+import IHoliday from "@model/holiday";
 
 interface Props {
     events: ITimeEvent[];
+    publicHolidays: IHoliday[];
+    currentDate: Date;
+    setCurrentDate: (arg0: Date) => void
 }
 
 export const EVENT_INDICATOR_TYPE = {
     SINGLE: "EVENT_INDICATOR_TYPE_SINGLE",
+    SINGLE_PUBLIC_HOLIDAY: "EVENT_INDICATOR_TYPE_SINGLE_PUBLIC_HOLIDAY",
     START: "EVENT_INDICATOR_TYPE_START",
     DAY: "EVENT_INDICATOR_TYPE_DAY",
     END: "EVENT_INDICATOR_TYPE_END",
 }
 
-const Calendar = ({events}: Props) => {
-
-
-    const [currentDate, setCurrentDate] = useState<Date>(DateUtils.firstDayOfThisMonth());
+const Calendar = ({events,publicHolidays, currentDate, setCurrentDate}: Props) => {
     const daysOfWeek = useMemo(() => {
         const dows = [
             "Mo",
@@ -71,6 +73,11 @@ const Calendar = ({events}: Props) => {
 
     const dayHasEvent = useCallback((day: number) => {
         const dateArray = eventsThisMonth.find(dateArray => dateArray.includes(day));
+        const isPublicHoliday = publicHolidays.find((holiday: IHoliday) => holiday.start.getDate() === day);
+
+        if (isPublicHoliday) {
+            return EVENT_INDICATOR_TYPE.SINGLE_PUBLIC_HOLIDAY;
+        }
 
         if (!dateArray) {
             return null;
@@ -89,7 +96,7 @@ const Calendar = ({events}: Props) => {
         }
 
         return EVENT_INDICATOR_TYPE.DAY;
-    }, [eventsThisMonth]);
+    }, [eventsThisMonth, publicHolidays]);
 
 
     const calendarDays = useMemo(() => {
@@ -106,7 +113,7 @@ const Calendar = ({events}: Props) => {
                 </div>
             );
         });
-    }, [currentDate, eventsThisMonth]);
+    }, [currentDate, eventsThisMonth, publicHolidays]);
 
     return (
         <div className="max-w mx-2 rounded-lg p-3 bg-slate-50">
@@ -117,8 +124,14 @@ const Calendar = ({events}: Props) => {
                     </span>
                 </div>
                 <div>
-                    <button onClick={handlePrevMonthClick}>Prev</button>
-                    <button onClick={handleNextMonthClick}>Next</button>
+                    <button
+                        className={"rounded-md text-white text-md p-1 w-16 h-8 bg-purple-600 mr-4"}
+                        onClick={handlePrevMonthClick}
+                    >Prev</button>
+                    <button
+                        className={"rounded-md text-white text-md p-1 w-16 h-8 bg-purple-600"}
+                        onClick={handleNextMonthClick}
+                    >Next</button>
                 </div>
             </div>
             <div className="grid grid-cols-7">

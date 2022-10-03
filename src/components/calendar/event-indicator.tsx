@@ -5,6 +5,11 @@ interface Props {
 }
 
 const EventIndicator = ({eventType}:Props) => {
+
+    if (eventType === EVENT_INDICATOR_TYPE.SINGLE_PUBLIC_HOLIDAY) {
+        return <div className="color-white h-6 bg-pink-500 flex justify-center align-center w-full rounded-full"/>;
+    }
+
     if (eventType === EVENT_INDICATOR_TYPE.START) {
         return <div className="h-6 bg-purple-500 flex justify-center align-center rounded-l-full w-full"/>;
     }
@@ -20,6 +25,8 @@ const EventIndicator = ({eventType}:Props) => {
     if (eventType === EVENT_INDICATOR_TYPE.SINGLE) {
         return <div className="w-6 color-white h-6 bg-purple-500 flex justify-center align-center rounded-full"/>;
     }
+
+
 
     return null;
 }

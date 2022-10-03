@@ -1,6 +1,7 @@
 import LOCAL_STORAGE_KEYS from "@constants/local_storage_keys";
 import IHoliday from "@model/holiday";
 import LocalStorageAdaptor from "@service-adaptors/local-storage-adaptor";
+import API_ROUTES from "@constants/api_routes";
 
 /*This method is tested, using a service adaptor pattern, to mock external dependencies*/
 const getAllByUserId = async (userId: number, localStorageAdaptor: any = LocalStorageAdaptor) => {
@@ -48,8 +49,27 @@ const deleteOne = async (id: number) => {
     return removedEntity;
 };
 
+const getPublicHolidays = async (currentMonth: number): Promise<IHoliday[]> => {
+    const response = await fetch(API_ROUTES.PUBLIC_HOLIDAYS);
+
+    if (response.status === 200) {
+        const responseData = await response.json();
+        return responseData
+            .map((responseModel: any) => ({
+                id: responseModel.id,
+                start: new Date(responseModel.start),
+                end: new Date(responseModel.end),
+            }))
+            .filter((holiday: IHoliday) => holiday.start.getMonth() === currentMonth);
+    }
+
+    return [];
+
+}
+
 export default {
     getAllByUserId,
     create,
-    deleteOne
+    deleteOne,
+    getPublicHolidays
 };

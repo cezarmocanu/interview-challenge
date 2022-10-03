@@ -15,7 +15,7 @@ const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();
 }
 
-const computeAvailableDays = (staffMember: IStaff, holidayList: IHoliday[]) => {
+const computeAvailableDays = (staffMember: IStaff, holidayList: IHoliday[], publicHolidays: IHoliday[]) => {
     const usedDays = holidayList
         .map(event => {
             const days = event.end.getDate() - event.start.getDate() + 1;
@@ -27,7 +27,7 @@ const computeAvailableDays = (staffMember: IStaff, holidayList: IHoliday[]) => {
                 }
                 dateIndex.setDate(dateIndex.getDate() + 1);
             }
-            return days === 0 ? 1 : days - weekendDays;
+            return days === 0 ? 1 : days - weekendDays - (publicHolidays ?? []).length;
         })
         .reduce((s, el) => s + el , 0);
 

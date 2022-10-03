@@ -13,9 +13,11 @@ import DateUtils from "@utils/date-utils";
 import ValidationUtils from "@utils/validation-utils";
 
 const Home: NextPage = () => {
+    const [currentDate, setCurrentDate] = useState<Date>(DateUtils.firstDayOfThisMonth());
     const [staffList, setStaffList] = useState<IStaff[]>([]);
     const [selectedStaffMember, setSelectedStaffMember] = useState<IStaff | null>(null);
     const [holidayList, setHolidayList] = useState<IHoliday[]>([]);
+    const [publicHolidays, setPublicHolidays] = useState<IHoliday[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         startDate: null,
@@ -26,6 +28,11 @@ const Home: NextPage = () => {
         HolidayService
             .getAllByUserId(staff.id)
             .then((data) => setHolidayList(data));
+
+        /*Free API works only with dates before 2022*/
+        HolidayService
+            .getPublicHolidays(currentDate.getMonth())
+            .then((data) => setPublicHolidays(data));
     }
 
     const initializeStaffList = () => {
@@ -92,7 +99,7 @@ const Home: NextPage = () => {
             return;
         }
 
-        return DateUtils.computeAvailableDays(selectedStaffMember, holidayList);
+        return DateUtils.computeAvailableDays(selectedStaffMember, holidayList, publicHolidays);
     }, [selectedStaffMember, holidayList]);
 
     useEffect(() => {
@@ -103,7 +110,7 @@ const Home: NextPage = () => {
         if (selectedStaffMember){
             getHolidaysByStaff(selectedStaffMember);
         }
-    }, [selectedStaffMember]);
+    }, [selectedStaffMember, currentDate]);
 
     return (
         <>
@@ -190,20 +197,40 @@ const Home: NextPage = () => {
             }
             <div className={"px-20"}>
                 <h1 className="text-lg py-2">Calendar</h1>
-                <Calendar events={holidayList}
+                <Calendar
+                    events={holidayList}
+                    publicHolidays={publicHolidays}
+                    currentDate={currentDate}
+                    setCurrentDate={setCurrentDate}
                 />
             </div>
             <div className={"px-20"}>
                 <div className={"max-w"}>
                     <h1 className="text-lg py-2">Scheduled vacations</h1>
+                    <h1 className="text-sm py-2">Public holidays are displayed from the year 2021 because, the API is free only for evets before this year</h1>
                     <div className={"max-w"}>
+                        {
+                            publicHolidays.map((event) => {
+                                return (
+                                    <div className={"max-w mb-2 flex"}>
+                                        <div className="flex flex-col justify-center items-center bg-pink-600 text-white w-24 h-24 rounded-lg">
+                                            <span className="text-xs">{`${MONTH_NAMES[event.start.getMonth() ?? 0]} ${event.start.getFullYear()}`}</span>
+                                            <span className="text-2xl">{event.start.getDate()}</span>
+                                        </div>
+                                        <div className="grow h-24 rounded-lg bg-pink-600 ml-2 text-white flex  items-center px-2">
+                                            <span className={"text-md"}>{`Public holiday`}</span>
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        }
                         {
                             holidayList.map((event) => {
                                 return (
                                     <div className={"max-w mb-2 flex"}>
                                         <div className="flex flex-col justify-center items-center bg-purple-600 text-white w-24 h-24 rounded-lg">
                                             <span className="text-xs">{`${MONTH_NAMES[event.start.getMonth() ?? 0]} ${event.start.getFullYear()}`}</span>
-                                            <span className="text-2xl">{event.start.getDate() + 1}</span>
+                                            <span className="text-2xl">{event.start.getDate()}</span>
                                         </div>
                                         <div className="grow h-24 rounded-lg bg-purple-600 mx-2 text-white flex  items-center px-2">
                                             <span className={"text-md"}>{`Vacation (${(event.end.getDate() - event.start.getDate() === 0 ? 1 : event.end.getDate() - event.start.getDate())} days)`}</span>
