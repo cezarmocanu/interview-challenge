@@ -43,7 +43,7 @@ const deleteOne = async (id: number) => {
     if (entityIndex === -1 || !data.length) return;
 
     const removedEntity = data.splice(entityIndex, 1);
-    localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_HOLIDAY_ID, JSON.stringify(data));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.HOLIDAYS, JSON.stringify(data));
 
     return removedEntity;
 };

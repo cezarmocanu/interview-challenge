@@ -62,6 +62,14 @@ const Home: NextPage = () => {
         });
     }
 
+    const handleHolidayRemove = async (removedHoliday: IHoliday) => {
+        const index = holidayList.findIndex(holiday => holiday.id === removedHoliday.id);
+        if(index === -1) return;
+        holidayList.splice(index, 1);
+        setHolidayList([...holidayList]);
+        await HolidayService.deleteOne(removedHoliday.id ?? -1);
+    }
+
     const handleOnChange = (e: any) => {
         const staff = staffList.find((staff: IStaff) => staff.id === Number(e.target.value)) ?? null;
         setSelectedStaffMember(staff);
@@ -179,9 +187,15 @@ const Home: NextPage = () => {
                                             <span className="text-xs">{`${MONTH_NAMES[event.start.getMonth() ?? 0]} ${event.start.getFullYear()}`}</span>
                                             <span className="text-2xl">{event.start.getDate() + 1}</span>
                                         </div>
-                                        <div className="grow h-24 rounded-lg bg-purple-600 ml-2 text-white flex  items-center px-2">
+                                        <div className="grow h-24 rounded-lg bg-purple-600 mx-2 text-white flex  items-center px-2">
                                             <span className={"text-md"}>{`Vacation (${(event.end.getDate() - event.start.getDate() === 0 ? 1 : event.end.getDate() - event.start.getDate())} days)`}</span>
                                         </div>
+                                        <button
+                                            onClick={() => handleHolidayRemove(event)}
+                                            className="flex flex-col justify-center items-center bg-purple-600 text-white w-24 h-24 rounded-lg hover:bg-purple-400"
+                                        >
+                                            <span className="text-xs">Remove</span>
+                                        </button>
                                     </div>
                                 )
                             })
