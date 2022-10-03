@@ -10,11 +10,13 @@ import Calendar from "@components/calendar/calendar";
 import IHoliday from "@model/holiday";
 import MONTH_NAMES from "@constants/month_names";
 import DateUtils from "@utils/date-utils";
+import ValidationUtils from "@utils/validation-utils";
 
 const Home: NextPage = () => {
     const [staffList, setStaffList] = useState<IStaff[]>([]);
     const [selectedStaffMember, setSelectedStaffMember] = useState<IStaff | null>(null);
     const [holidayList, setHolidayList] = useState<IHoliday[]>([]);
+    const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         startDate: null,
         endDate: null,
@@ -49,17 +51,27 @@ const Home: NextPage = () => {
 
     const handleFormSubmit = (e: any) => {
         e.preventDefault();
-        const holiday: IHoliday = {
-            start: new Date(formData.startDate ?? ""),
-            end: new Date(formData.endDate ?? ""),
+        setError(null);
+        if (selectedStaffMember === null) {
+            return;
+        }
+
+        const holiday: any = {
+            start: formData.startDate ? new Date(formData.startDate) : null,
+            end: formData.endDate ? new Date(formData.endDate) : null,
             userId: selectedStaffMember?.id,
         }
 
-        HolidayService.create(holiday).then(() => {
-            if (selectedStaffMember) {
-                getHolidaysByStaff(selectedStaffMember)
-            }
-        });
+        ValidationUtils.validateHoliday(selectedStaffMember, staffList, holiday)
+            .then(async (validationResult) => {
+                if (validationResult.error){
+                    setError(validationResult.error);
+                    return;
+                }
+
+                await HolidayService.create(holiday);
+                getHolidaysByStaff(selectedStaffMember);
+            });
     }
 
     const handleHolidayRemove = async (removedHoliday: IHoliday) => {
@@ -161,7 +173,7 @@ const Home: NextPage = () => {
                             </div>
                         </div>
                     </div>
-                <div >
+                <div>
                     <button
                         onClick={handleFormSubmit}
                         className="w-32 text-white bg-purple-600 flex justify-center items-center p-2 rounded-lg hover:bg-purple-400"
@@ -170,6 +182,12 @@ const Home: NextPage = () => {
                     </button>
                 </div>
             </form>
+            {
+                error &&
+                <div className={"px-20"}>
+                    <span className={"text-md text-red-500"}>{error}</span>
+                </div>
+            }
             <div className={"px-20"}>
                 <h1 className="text-lg py-2">Calendar</h1>
                 <Calendar events={holidayList}
