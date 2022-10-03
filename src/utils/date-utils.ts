@@ -20,7 +20,7 @@ const computeAvailableDays = (staffMember: IStaff, holidayList: IHoliday[]) => {
         .map(event => {
             const days = event.end.getDate() - event.start.getDate() + 1;
             let weekendDays = 0;
-            let dateIndex: Date = event.start;
+            let dateIndex: Date = new Date(event.start);
             for (let i = 0; i < days; i++){
                 if ([6,0].includes(dateIndex.getDay())){
                     weekendDays++;
