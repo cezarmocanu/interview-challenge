@@ -6,15 +6,15 @@ interface Props {
 
 const EventIndicator = ({eventType}:Props) => {
     if (eventType === EVENT_INDICATOR_TYPE.START) {
-        return <div className="h-6 bg-purple-500 flex justify-center align-center rounded-l-full"/>;
+        return <div className="h-6 bg-purple-500 flex justify-center align-center rounded-l-full w-full"/>;
     }
 
     if (eventType === EVENT_INDICATOR_TYPE.END) {
-        return <div className="h-6 bg-purple-500 flex justify-center align-center rounded-r-full"/>;
+        return <div className="h-6 bg-purple-500 flex justify-center align-center rounded-r-full w-full"/>;
     }
 
     if (eventType === EVENT_INDICATOR_TYPE.DAY) {
-        return <div className="h-6 bg-purple-500 flex justify-center align-center max-w"/>;
+        return <div className="h-6 bg-purple-500 flex justify-center align-center w-full"/>;
     }
 
     if (eventType === EVENT_INDICATOR_TYPE.SINGLE) {

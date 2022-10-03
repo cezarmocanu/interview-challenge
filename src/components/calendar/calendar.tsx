@@ -61,7 +61,7 @@ const Calendar = ({events}: Props) => {
         return events
             .filter((event: ITimeEvent) => isEventThisMonth(event))
             .map((event) => {
-                const duration = event.end.getDate() - event.start.getDate();
+                const duration = event.end.getDate() - event.start.getDate() + 1;
                 if (duration === 0) {
                     return new Array(1).fill(event.start.getDate() + 1);
                 }
@@ -100,7 +100,7 @@ const Calendar = ({events}: Props) => {
                     <div className="max-w max-h flex justify-center items-center">
                         <span>{day}</span>
                     </div>
-                    <div className={"flex flex-col grow justify-center max-h"}>
+                    <div className={"flex flex-col grow justify-center items-center max-h"}>
                         <EventIndicator eventType={dayHasEvent(day)}/>
                     </div>
                 </div>
