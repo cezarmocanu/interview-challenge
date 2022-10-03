@@ -1,5 +1,5 @@
 import type {NextPage} from 'next';
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 
 import IStaff from "@model/staff";
 
@@ -9,6 +9,7 @@ import HolidayService from "@services/holiday-service";
 import Calendar from "@components/calendar/calendar";
 import IHoliday from "@model/holiday";
 import MONTH_NAMES from "@constants/month_names";
+import DateUtils from "@utils/date-utils";
 
 const Home: NextPage = () => {
     const [staffList, setStaffList] = useState<IStaff[]>([]);
@@ -67,17 +68,11 @@ const Home: NextPage = () => {
     }
 
     const remainingDays = useMemo(() => {
-        if(!selectedStaffMember) return;
+        if(!selectedStaffMember) {
+            return;
+        }
 
-        const usedDays = holidayList
-            .map(event => {
-                const days = event.end.getDay() - event.start.getDay();
-                console.log(event.end.getDay(),event.start.getDay(),days)
-                return days === 0 ? 1 : Math.abs(days);
-            })
-            .reduce((s, el) => s + el , 0);
-
-        return selectedStaffMember?.vacationBudget - usedDays;
+        return DateUtils.computeAvailableDays(selectedStaffMember, holidayList);
     }, [selectedStaffMember, holidayList]);
 
     useEffect(() => {
